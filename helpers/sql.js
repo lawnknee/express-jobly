@@ -1,6 +1,16 @@
 const { BadRequestError } = require("../expressError");
 
-// THIS NEEDS SOME GREAT DOCUMENTATION.
+/** Takes in user data, such as:
+ *    { firstName, lastName, password, email, isAdmin }
+ *  
+ *  Creates an array with the column names parameterized.
+ * 
+ *  Returns an object like:
+ *    { 
+ *      setCols: joins the array with comma-separated elements,
+ *      values: array of values from dataToUpdate
+ *    }  
+ */ 
 
 function sqlForPartialUpdate(dataToUpdate, jsToSql) {
   const keys = Object.keys(dataToUpdate);
