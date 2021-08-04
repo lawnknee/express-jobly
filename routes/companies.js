@@ -47,19 +47,15 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
  */
 
 router.get("/", async function (req, res, next) {
-  let nameLike = req.query.name;
+  const query = req.query;
 
-  let minEmployees =
-    req.query.minEmployees !== undefined
-      ? Number(req.query.minEmployees)
-      : undefined;
+  if (query.minEmployees) {
+    query.minEmployees = Number(query.minEmployees)
+  }
 
-  let maxEmployees =
-    req.query.maxEmployees !== undefined
-      ? Number(req.query.maxEmployees)
-      : undefined;
-
-  const query = { nameLike, minEmployees, maxEmployees };
+  if (query.maxEmployees) {
+    query.maxEmployees = Number(query.maxEmployees)
+  }
 
   const result = jsonschema.validate(query, companyFilteringSchema);
 
