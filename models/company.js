@@ -44,15 +44,19 @@ class Company {
     return company;
   }
 
-  /** Find all companies.
+  /** Find all companies with optional filtering criteria.
+   *    Optional filtering criteria:
+   *      - minEmployees
+   *      - maxEmployees
+   *      - nameLike (will find case-insensitive, partial matches)
    *
    *  Expects a query object; defaulted to empty obj if no arguments were provided.
-   * 
+   *  
    *  Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
 
   static async findAll(query = {}) {
-    let { where, sanitizedInputs } = Company.whereBuilder(query);
+    let { where, sanitizedInputs } = Company.whereClauseBuilder(query);
 
     const companiesRes = await db.query(
       `SELECT handle,
@@ -68,25 +72,24 @@ class Company {
     return companiesRes.rows;
   }
 
-  /** Builds where clause based on user inputs in query string.
+  /** Builds where clause based on filtering criteria in query string.
    * 
    *  Expects an object with filtering criteria as keys, and user inputs as values.
-   * 
+   *    
    *  Returns an object like:
    *    {
    *      where: 'WHERE name ILIKE $1 AND ...'
    *      sanitizedInputs: [ value1, ... ]
    *    }
    */
-  static whereBuilder(query) {
+  static whereClauseBuilder(query) {
     const { nameLike, minEmployees, maxEmployees } = query;
 
-    if (minEmployees && maxEmployees) {
-      if (minEmployees > maxEmployees) {
-        throw new BadRequestError(
-          "Minimum employees cannot be greater than Maximum employees."
-        );
-      }
+    // if min employees > max employees, throws a BadRequest error.
+    if ((minEmployees && maxEmployees) && (minEmployees > maxEmployees)){
+      throw new BadRequestError(
+        "Minimum employees cannot be greater than Maximum employees."
+      );
     }
 
     let filters = [];

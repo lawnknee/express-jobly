@@ -63,6 +63,7 @@ router.get("/", async function (req, res, next) {
     let errs = result.errors.map((err) => err.stack);
     throw new BadRequestError(errs);
   }
+  
   const companies = await Company.findAll(query);
   return res.json({ companies });
 });
