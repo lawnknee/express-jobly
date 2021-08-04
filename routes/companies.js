@@ -15,7 +15,6 @@ const companyFilteringSchema = require("../schemas/companyFiltering.json");
 
 const router = new express.Router();
 
-
 /** POST / { company } =>  { company }
  *
  * company should be { handle, name, description, numEmployees, logoUrl }
@@ -28,7 +27,7 @@ const router = new express.Router();
 router.post("/", ensureLoggedIn, async function (req, res, next) {
   const validator = jsonschema.validate(req.body, companyNewSchema);
   if (!validator.valid) {
-    const errs = validator.errors.map(e => e.stack);
+    const errs = validator.errors.map((e) => e.stack);
     throw new BadRequestError(errs);
   }
 
@@ -49,24 +48,25 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
 
 router.get("/", async function (req, res, next) {
   let nameLike = req.query.name;
-  
-  let minEmployees = (req.query.minEmployees !== undefined)
-    ? Number(req.query.minEmployees)
-    : undefined
 
-  let maxEmployees = (req.query.maxEmployees !== undefined)
-    ? Number(req.query.maxEmployees)
-    : undefined
+  let minEmployees =
+    req.query.minEmployees !== undefined
+      ? Number(req.query.minEmployees)
+      : undefined;
 
-  const query = { nameLike, minEmployees, maxEmployees }
+  let maxEmployees =
+    req.query.maxEmployees !== undefined
+      ? Number(req.query.maxEmployees)
+      : undefined;
 
-  const result = jsonschema.validate(query, companyFilteringSchema)
-  
+  const query = { nameLike, minEmployees, maxEmployees };
+
+  const result = jsonschema.validate(query, companyFilteringSchema);
+
   if (!result.valid) {
-    let errs = result.errors.map(err => err.stack);
+    let errs = result.errors.map((err) => err.stack);
     throw new BadRequestError(errs);
   }
-
   const companies = await Company.findAll(query);
   return res.json({ companies });
 });
@@ -98,7 +98,7 @@ router.get("/:handle", async function (req, res, next) {
 router.patch("/:handle", ensureLoggedIn, async function (req, res, next) {
   const validator = jsonschema.validate(req.body, companyUpdateSchema);
   if (!validator.valid) {
-    const errs = validator.errors.map(e => e.stack);
+    const errs = validator.errors.map((e) => e.stack);
     throw new BadRequestError(errs);
   }
 
@@ -115,6 +115,5 @@ router.delete("/:handle", ensureLoggedIn, async function (req, res, next) {
   await Company.remove(req.params.handle);
   return res.json({ deleted: req.params.handle });
 });
-
 
 module.exports = router;

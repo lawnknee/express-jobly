@@ -49,11 +49,17 @@ class Company {
    * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
 
-  static async findAll({ nameLike, minEmployees, maxEmployees }) {
-    if (minEmployees > maxEmployees) {
-      throw new BadRequestError("Minimum employees cannot be greater than Maximum employees.");
+  static async findAll(inputs = {}) {
+    const { nameLike, minEmployees, maxEmployees } = inputs;
+
+    if (minEmployees && maxEmployees) {
+      if (minEmployees > maxEmployees) {
+        throw new BadRequestError(
+          "Minimum employees cannot be greater than Maximum employees."
+        );
+      }
     }
-    
+
     let filters = [];
     let sanitizedInputs = [];
 
@@ -70,9 +76,7 @@ class Company {
       sanitizedInputs.push(maxEmployees);
     }
 
-    let where = filters.length > 0 
-      ? `WHERE ${filters.join(" AND ")}` 
-      : "";
+    let where = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
 
     const companiesRes = await db.query(
       `SELECT handle,
@@ -82,8 +86,9 @@ class Company {
                 logo_url AS "logoUrl"
            FROM companies
            ${where}
-           ORDER BY name`, 
-           sanitizedInputs);
+           ORDER BY name`,
+      sanitizedInputs
+    );
     return companiesRes.rows;
   }
 
