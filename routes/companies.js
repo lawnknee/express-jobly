@@ -48,9 +48,20 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
  */
 
 router.get("/", async function (req, res, next) {
-  const query = req.query;
-  const result = jsonschema.validate(query, companyFilteringSchema)
+  let nameLike = req.query.name;
+  
+  let minEmployees = (req.query.minEmployees !== undefined)
+    ? Number(req.query.minEmployees)
+    : undefined
 
+  let maxEmployees = (req.query.maxEmployees !== undefined)
+    ? Number(req.query.maxEmployees)
+    : undefined
+
+  const query = { nameLike, minEmployees, maxEmployees }
+
+  const result = jsonschema.validate(query, companyFilteringSchema)
+  
   if (!result.valid) {
     let errs = result.errors.map(err => err.stack);
     throw new BadRequestError(errs);

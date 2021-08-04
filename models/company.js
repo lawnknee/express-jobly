@@ -49,12 +49,15 @@ class Company {
    * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
 
-  static async findAll({ nameFilter, minEmployees, maxEmployees }) {
+  static async findAll({ nameLike, minEmployees, maxEmployees }) {
     let filters = [];
     let sanitizedInputs = [];
-    if (nameFilter) {
+
+    console.log(nameLike, minEmployees, maxEmployees);
+
+    if (nameLike) {
       filters.push(`name ILIKE $${filters.length + 1}`);
-      sanitizedInputs.push(nameFilter);
+      sanitizedInputs.push(`'%${nameLike}%'`);
     }
     if (minEmployees) {
       filters.push(`num_employees >= $${filters.length + 1}`);
@@ -66,6 +69,8 @@ class Company {
     }
 
     let where = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
+
+    console.log(`WHERE CLAUSE: ${where}, PARAMETERS: ${sanitizedInputs}`);
 
     const companiesRes = await db.query(
       `SELECT handle,
