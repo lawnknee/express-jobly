@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>47/47</span>
+                <span class='fraction'>46/46</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>23/23</span>
+                <span class='fraction'>22/22</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>44/44</span>
+                <span class='fraction'>43/43</span>
             </div>
         
             
@@ -248,7 +248,11 @@
 <a name='L189'></a><a href='#L189'>189</a>
 <a name='L190'></a><a href='#L190'>190</a>
 <a name='L191'></a><a href='#L191'>191</a>
-<a name='L192'></a><a href='#L192'>192</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L192'></a><a href='#L192'>192</a>
+<a name='L193'></a><a href='#L193'>193</a>
+<a name='L194'></a><a href='#L194'>194</a>
+<a name='L195'></a><a href='#L195'>195</a>
+<a name='L196'></a><a href='#L196'>196</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
@@ -275,6 +279,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">13x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">12x</span>
@@ -292,6 +297,10 @@
 <span class="cline-any cline-yes">12x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -331,10 +340,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -466,7 +474,8 @@ class Company {
     );
 &nbsp;
     if (duplicateCheck.rows[0])
-      throw new BadRequestError(`Duplicate company: ${handle}`);
+      // throw new BadRequestError(`Duplicate company: ${handle}`);
+      throw new BadRequestError();
 &nbsp;
     const result = await db.query(
       `INSERT INTO companies(
@@ -485,15 +494,19 @@ class Company {
     return company;
   }
 &nbsp;
-  /** Find all companies.
+  /** Find all companies with optional filtering criteria.
+   *    Optional filtering criteria:
+   *      - minEmployees
+   *      - maxEmployees
+   *      - nameLike (will find case-insensitive, partial matches)
    *
    *  Expects a query object; defaulted to empty obj if no arguments were provided.
-   * 
+   *  
    *  Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
 &nbsp;
   static async findAll(query = {}) {
-    let { where, sanitizedInputs } = Company.whereBuilder(query);
+    let { where, sanitizedInputs } = Company.whereClauseBuilder(query);
 &nbsp;
     const companiesRes = await db.query(
       `SELECT handle,
@@ -509,25 +522,24 @@ class Company {
     return companiesRes.rows;
   }
 &nbsp;
-  /** Builds where clause based on user inputs in query string.
+  /** Builds where clause based on filtering criteria in query string.
    * 
    *  Expects an object with filtering criteria as keys, and user inputs as values.
-   * 
+   *    
    *  Returns an object like:
    *    {
    *      where: 'WHERE name ILIKE $1 AND ...'
    *      sanitizedInputs: [ value1, ... ]
    *    }
    */
-  static whereBuilder(query) {
+  static whereClauseBuilder(query) {
     const { nameLike, minEmployees, maxEmployees } = query;
 &nbsp;
-    if (minEmployees &amp;&amp; maxEmployees) {
-      if (minEmployees &gt; maxEmployees) {
-        throw new BadRequestError(
-          "Minimum employees cannot be greater than Maximum employees."
-        );
-      }
+    // if min employees &gt; max employees, throws a BadRequest error.
+    if ((minEmployees &amp;&amp; maxEmployees) &amp;&amp; (minEmployees &gt; maxEmployees)){
+      throw new BadRequestError(
+        "Minimum employees cannot be greater than Maximum employees."
+      );
     }
 &nbsp;
     let filters = [];
@@ -637,7 +649,7 @@ module.exports = Company;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank">istanbul</a>
-                at Wed Aug 04 2021 15:03:04 GMT-0700 (Pacific Daylight Time)
+                at Wed Aug 04 2021 15:26:44 GMT-0700 (Pacific Daylight Time)
             </div>
         </div>
         <script src="../../prettify.js"></script>

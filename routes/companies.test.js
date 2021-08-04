@@ -116,11 +116,12 @@ describe("GET /companies", function () {
   test("invalid: invalid incoming request", async function () {
     const resp = await request(app)
       .get("/companies")
-      .query({ badName: "2", minEmployees: 1, maxEmployees: 2 });
+      .query({ badName: "2", minEmployees: "one", maxEmployees: 2 });
 
     expect(resp.body).toEqual({
       "error": {
         "message": [
+          "instance.minEmployees is not of a type(s) integer",
           "instance is not allowed to have the additional property \"badName\""
         ],
         "status": 400

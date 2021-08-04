@@ -1,14 +1,18 @@
 const { BadRequestError } = require("../expressError");
 
-/** Takes in user data, such as:
- *    { firstName, lastName, password, email, isAdmin }
- *
+/** Takes in user data and jsToSql, like:
+ *    dataToUpdate object:
+ *      { firstName, age }
+ *    jsToSql object:
+ *      snakeCases dataToUpdate keys that are camelCased like:
+ *      {firstName: first_name}
+ * 
  *  Creates an array with the column names parameterized.
  *
  *  Returns an object like:
  *    {
- *      setCols: joins the array with comma-separated elements,
- *      values: array of values from dataToUpdate
+ *      setCols: '"first_name"=$1', '"age"=$2',
+ *      values: ['Aliya', 32]
  *    }
  */
 

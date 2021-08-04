@@ -28,3 +28,6 @@ describe("sqlForPartialUpdate", function () {
     }
   });
 });
+
+// test zero, one, and two
+// additional test: test with one input

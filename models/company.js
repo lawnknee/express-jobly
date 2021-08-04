@@ -56,7 +56,9 @@ class Company {
    * */
 
   static async findAll(query = {}) {
-    let { where, sanitizedInputs } = Company.whereClauseBuilder(query);
+    const { nameLike, minEmployees, maxEmployees } = query;
+
+    const { where, values } = Company._whereClauseBuilder({ nameLike, minEmployees, maxEmployees });
 
     const companiesRes = await db.query(
       `SELECT handle,
@@ -67,24 +69,24 @@ class Company {
            FROM companies
            ${where}
            ORDER BY name`,
-      sanitizedInputs
+      values
     );
     return companiesRes.rows;
   }
 
   /** Builds where clause based on filtering criteria in query string.
    * 
-   *  Expects an object with filtering criteria as keys, and user inputs as values.
+   *  Expects an object with filtering criteria (minEmployees, maxEmployees, nameLike)
+   *    as keys, and user inputs as values.
    *    
    *  Returns an object like:
    *    {
    *      where: 'WHERE name ILIKE $1 AND ...'
-   *      sanitizedInputs: [ value1, ... ]
+   *      values: [ value1, ... ]
    *    }
    */
-  static whereClauseBuilder(query) {
-    const { nameLike, minEmployees, maxEmployees } = query;
-
+  static _whereClauseBuilder({ nameLike, minEmployees, maxEmployees }) {
+  
     // if min employees > max employees, throws a BadRequest error.
     if ((minEmployees && maxEmployees) && (minEmployees > maxEmployees)){
       throw new BadRequestError(
@@ -92,25 +94,25 @@ class Company {
       );
     }
 
-    let filters = [];
-    let sanitizedInputs = [];
+    let whereParts = [];
+    let values = [];
 
     if (nameLike) {
-      filters.push(`name ILIKE $${filters.length + 1}`);
-      sanitizedInputs.push(`%${nameLike}%`);
+      whereParts.push(`name ILIKE $${whereParts.length + 1}`);
+      values.push(`%${nameLike}%`);
     }
     if (minEmployees) {
-      filters.push(`num_employees >= $${filters.length + 1}`);
-      sanitizedInputs.push(minEmployees);
+      whereParts.push(`num_employees >= $${whereParts.length + 1}`);
+      values.push(minEmployees);
     }
     if (maxEmployees) {
-      filters.push(`num_employees <= $${filters.length + 1}`);
-      sanitizedInputs.push(maxEmployees);
+      whereParts.push(`num_employees <= $${whereParts.length + 1}`);
+      values.push(maxEmployees);
     }
 
-    let where = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
+    let where = whereParts.length > 0 ? `WHERE ${whereParts.join(" AND ")}` : "";
 
-    return { where, sanitizedInputs };
+    return { where, values };
   }
 
   /** Given a company handle, return data about company.
