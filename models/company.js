@@ -46,11 +46,40 @@ class Company {
 
   /** Find all companies.
    *
-   * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
+   *  Expects a query object; defaulted to empty obj if no arguments were provided.
+   * 
+   *  Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
 
-  static async findAll(inputs = {}) {
-    const { nameLike, minEmployees, maxEmployees } = inputs;
+  static async findAll(query = {}) {
+    let { where, sanitizedInputs } = Company.whereBuilder(query);
+
+    const companiesRes = await db.query(
+      `SELECT handle,
+                name,
+                description,
+                num_employees AS "numEmployees",
+                logo_url AS "logoUrl"
+           FROM companies
+           ${where}
+           ORDER BY name`,
+      sanitizedInputs
+    );
+    return companiesRes.rows;
+  }
+
+  /** Builds where clause based on user inputs in query string.
+   * 
+   *  Expects an object with filtering criteria as keys, and user inputs as values.
+   * 
+   *  Returns an object like:
+   *    {
+   *      where: 'WHERE name ILIKE $1 AND ...'
+   *      sanitizedInputs: [ value1, ... ]
+   *    }
+   */
+  static whereBuilder(query) {
+    const { nameLike, minEmployees, maxEmployees } = query;
 
     if (minEmployees && maxEmployees) {
       if (minEmployees > maxEmployees) {
@@ -78,18 +107,7 @@ class Company {
 
     let where = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
 
-    const companiesRes = await db.query(
-      `SELECT handle,
-                name,
-                description,
-                num_employees AS "numEmployees",
-                logo_url AS "logoUrl"
-           FROM companies
-           ${where}
-           ORDER BY name`,
-      sanitizedInputs
-    );
-    return companiesRes.rows;
+    return { where, sanitizedInputs };
   }
 
   /** Given a company handle, return data about company.
