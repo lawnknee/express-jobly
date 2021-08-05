@@ -10,13 +10,12 @@ const {
   commonBeforeEach,
   commonAfterEach,
   commonAfterAll,
-  j1Id,
-  j2Id,
+  jobIds,
   u1Token,
   adminToken,
 } = require("./_testCommon");
 const { findAll } = require("../models/company");
-const { ForbiddenError } = require("../expressError");
+const { ForbiddenError, NotFoundError } = require("../expressError");
 const Job = require("../models/job");
 
 beforeAll(commonBeforeAll);
@@ -29,6 +28,7 @@ const CREATED = 201;
 const BADREQUEST = 400;
 const UNAUTH = 401;
 const FORBIDDEN = 403;
+const NOTFOUND = 404;
 
 /************************************** POST /jobs */
 
@@ -138,7 +138,7 @@ describe("GET /jobs", function () {
     });
   });
 
-  test("works: validates incoming request", async function () {
+  test("works: validates incoming request with filters", async function () {
     const resp = await request(app)
       .get("/jobs")
       .query({ title: "j1", minSalary: 5000, hasEquity: true });
@@ -155,16 +155,16 @@ describe("GET /jobs", function () {
     });
   });
 
-  test("invalid: invalid incoming request", async function () {
+  test("invalid: invalid incoming request with filters", async function () {
     const resp = await request(app)
       .get("/jobs")
-      .query({ badTitle: "2", minSalary: "one", hasEquity: 'true' });
+      .query({ badTitle: "2", minSalary: "one", hasEquity: "true" });
 
     expect(resp.body).toEqual({
       error: {
         message: [
           "instance.minSalary is not of a type(s) integer",
-          "instance is not allowed to have the additional property \"badTitle\""
+          'instance is not allowed to have the additional property "badTitle"',
         ],
         status: 400,
       },
@@ -184,39 +184,126 @@ describe("GET /jobs", function () {
   });
 });
 
+describe("GET /jobs/:id", function () {
+  test("working for anon", async function () {
+    const resp = await request(app).get(`/jobs/${jobIds.id1}`);
+    expect(resp.statusCode).toEqual(OK);
+    expect(resp.body).toEqual({
+      job: {
+        companyHandle: "c1",
+        equity: "0.1",
+        id: expect.any(Number),
+        salary: 10000,
+        title: "j1",
+      },
+    });
+  });
+
+  test("working for logged in user", async function () {
+    const resp = await request(app)
+      .get(`/jobs/${jobIds.id1}`)
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(OK);
+    expect(resp.body).toEqual({
+      job: {
+        companyHandle: "c1",
+        equity: "0.1",
+        id: expect.any(Number),
+        salary: 10000,
+        title: "j1",
+      },
+    });
+  });
+
+  test("notfound for invalid jobId", async function () {
+    const resp = await request(app)
+      .get(`/jobs/0`)
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(NOTFOUND);
+  });
+});
+
+describe("PATCH /jobs/:id", function () {
+  test("works: admins", async function () {
+    const resp = await request(app)
+      .patch(`/jobs/${jobIds.id1}`)
+      .send({
+        title: "patch job title",
+      })
+      .set("authorization", `Bearer ${adminToken}`);
+    expect(resp.statusCode).toEqual(OK);
+    expect(resp.body).toEqual({
+      job: {
+        companyHandle: "c1",
+        id: expect.any(Number),
+        salary: 10000,
+        title: "patch job title",
+      },
+    });
+  });
+  test("unauth for anon", async function () {
+    const resp = await request(app).patch(`/jobs/${jobIds.id1}`).send({
+      title: "should not work",
+    });
+
+    expect(resp.statusCode).toEqual(UNAUTH);
+    expect(resp.body).toEqual({
+      error: { message: "Unauthorized", status: 401 },
+    });
+  });
+  test("forbidden for non-admin", async function () {
+    const resp = await request(app)
+      .patch(`/jobs/${jobIds.id1}`)
+      .send({
+        title: "should not work",
+      })
+      .set("authorization", `Bearer ${u1Token}`);
+
+    expect(resp.statusCode).toEqual(FORBIDDEN);
+    expect(resp.body).toEqual({
+      error: { message: "Bad Request", status: 403 },
+    });
+  });
+  test("bad request: Invalid info", async function () {
+    const resp = await request(app)
+      .patch(`/jobs/${jobIds.id1}`)
+      .send({
+        badKeyRequest: "should not work",
+        title: "test title",
+      })
+      .set("authorization", `Bearer ${adminToken}`);
+
+    expect(resp.status).toEqual(BADREQUEST);
+    expect(resp.body).toEqual({
+      error: {
+        message: [
+          'instance is not allowed to have the additional property "badKeyRequest"',
+        ],
+        status: 400,
+      },
+    });
+  });
+
+  test("bad request: changing primary key", async function () {
+    const resp = await request(app)
+      .patch(`/jobs/${jobIds.id1}`)
+      .send({
+        id: 2000,
+      })
+      .set("authorization", `Bearer ${adminToken}`);
+
+    expect(resp.status).toEqual(BADREQUEST);
+    expect(resp.body).toEqual({
+      error: {
+        message: [
+          'instance is not allowed to have the additional property "id"',
+        ],
+        status: 400,
+      },
+    });
+  });
+});
 /*
-Creating a job
-done - working, admins only
-done unauth anon
-done forbidden non-admin
-done badreq invalid info
-done badreq missing data
-
-Getting all jobs
-- working, no filter, anon
-- working, any user
-
-Getting filter jobs 
-- working with filters
-- badreq invalid info
-
-jobsWhereBuilder
-- working, title filter
-- working minSalary filter
-- working, hasEquity filter
-- working, combo filter
-
-Getting specific jobId
-- working, anon
-- working, any user
-- notfound, invalid jobid
-
-Updating job posting
-- working, admin only
-- unauth anon
-- forbidden non-admin 
-- badreq invalid info
-- badreq change primary key
 
 Delete job posting
 - working, admin only
