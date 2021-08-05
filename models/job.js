@@ -51,7 +51,7 @@ class Job {
       values.push(`%${title}%`);
     }
     if (minSalary) {
-      whereParts.push(`min_salary >= $${whereParts.length + 1}`);
+      whereParts.push(`salary >= $${whereParts.length + 1}`);
       values.push(minSalary);
     }
     if (hasEquity) {
@@ -63,6 +63,61 @@ class Job {
       whereParts.length > 0 ? `WHERE ${whereParts.join(" AND ")}` : "";
 
     return { where, values };
+  }
+
+  static async get(id) {
+    const result = await db.query(
+      `SELECT id, 
+              title, 
+              salary, 
+              equity, 
+              company_handle
+          FROM jobs
+          WHERE id = $1`,
+          [id]
+    );
+
+    const job = result.rows[0];
+
+    if (!job) throw new NotFoundError(`No job: ${id}`);
+
+    return job;
+  }
+
+  static async update(id, data) {
+    const { setCols, values } = sqlForPartialUpdate(data, {
+      companyHandle: "company_handle",
+    });
+    const idVarIdx = "$" + (values.length + 1);
+
+    const querySql = `
+      UPDATE jobs
+      SET ${setCols}
+        WHERE id = ${idVarIdx}
+        RETURNING id, 
+                  title, 
+                  salary, 
+                  company_handle AS "companyHandle"`;
+
+    const result = await db.query(querySql, [...values, id]);
+    const job = result.rows[0];
+
+    if (!job) throw new NotFoundError(`No job: ${id}`);
+
+    return job;
+  }
+
+  static async remove(id) {
+    const result = await db.query(
+      `DELETE
+           FROM jobs
+           WHERE id = $1
+           RETURNING id`,
+           [id]
+    );
+    const job = result.rows[0];
+
+    if (!job) throw new NotFoundError(`No job: ${id}`);
   }
 }
 
