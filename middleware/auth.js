@@ -47,12 +47,11 @@ function ensureLoggedIn(req, res, next) {
  */
 
 function ensureIsAdmin(req, res, next) {
-  // check user is logged in first
-
-  if ((!res.locals.user) || (!res.locals.user.isAdmin)) throw new ForbiddenError();
+  if (!res.locals.user) throw new UnauthorizedError();
+  
+  if (!res.locals.user.isAdmin) throw new ForbiddenError();
   
   return next();
-
 }
 
 /** Middleware to use when route requires user to be an admin or
