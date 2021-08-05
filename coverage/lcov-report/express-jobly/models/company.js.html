@@ -252,7 +252,8 @@
 <a name='L193'></a><a href='#L193'>193</a>
 <a name='L194'></a><a href='#L194'>194</a>
 <a name='L195'></a><a href='#L195'>195</a>
-<a name='L196'></a><a href='#L196'>196</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L196'></a><a href='#L196'>196</a>
+<a name='L197'></a><a href='#L197'>197</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
@@ -279,7 +280,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">13x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">12x</span>
@@ -313,6 +313,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -338,7 +340,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">7x</span>
@@ -474,8 +476,7 @@ class Company {
     );
 &nbsp;
     if (duplicateCheck.rows[0])
-      // throw new BadRequestError(`Duplicate company: ${handle}`);
-      throw new BadRequestError();
+      throw new BadRequestError(`Duplicate company: ${handle}`);
 &nbsp;
     const result = await db.query(
       `INSERT INTO companies(
@@ -506,7 +507,9 @@ class Company {
    * */
 &nbsp;
   static async findAll(query = {}) {
-    let { where, sanitizedInputs } = Company.whereClauseBuilder(query);
+    const { nameLike, minEmployees, maxEmployees } = query;
+&nbsp;
+    const { where, values } = Company._whereClauseBuilder({ nameLike, minEmployees, maxEmployees });
 &nbsp;
     const companiesRes = await db.query(
       `SELECT handle,
@@ -517,24 +520,24 @@ class Company {
            FROM companies
            ${where}
            ORDER BY name`,
-      sanitizedInputs
+      values
     );
     return companiesRes.rows;
   }
 &nbsp;
   /** Builds where clause based on filtering criteria in query string.
    * 
-   *  Expects an object with filtering criteria as keys, and user inputs as values.
+   *  Expects an object with filtering criteria (minEmployees, maxEmployees, nameLike)
+   *    as keys, and user inputs as values.
    *    
    *  Returns an object like:
    *    {
    *      where: 'WHERE name ILIKE $1 AND ...'
-   *      sanitizedInputs: [ value1, ... ]
+   *      values: [ value1, ... ]
    *    }
    */
-  static whereClauseBuilder(query) {
-    const { nameLike, minEmployees, maxEmployees } = query;
-&nbsp;
+  static _whereClauseBuilder({ nameLike, minEmployees, maxEmployees }) {
+  
     // if min employees &gt; max employees, throws a BadRequest error.
     if ((minEmployees &amp;&amp; maxEmployees) &amp;&amp; (minEmployees &gt; maxEmployees)){
       throw new BadRequestError(
@@ -542,25 +545,25 @@ class Company {
       );
     }
 &nbsp;
-    let filters = [];
-    let sanitizedInputs = [];
+    let whereParts = [];
+    let values = [];
 &nbsp;
     if (nameLike) {
-      filters.push(`name ILIKE $${filters.length + 1}`);
-      sanitizedInputs.push(`%${nameLike}%`);
+      whereParts.push(`name ILIKE $${whereParts.length + 1}`);
+      values.push(`%${nameLike}%`);
     }
     if (minEmployees) {
-      filters.push(`num_employees &gt;= $${filters.length + 1}`);
-      sanitizedInputs.push(minEmployees);
+      whereParts.push(`num_employees &gt;= $${whereParts.length + 1}`);
+      values.push(minEmployees);
     }
     if (maxEmployees) {
-      filters.push(`num_employees &lt;= $${filters.length + 1}`);
-      sanitizedInputs.push(maxEmployees);
+      whereParts.push(`num_employees &lt;= $${whereParts.length + 1}`);
+      values.push(maxEmployees);
     }
 &nbsp;
-    let where = filters.length &gt; 0 ? `WHERE ${filters.join(" AND ")}` : "";
+    let where = whereParts.length &gt; 0 ? `WHERE ${whereParts.join(" AND ")}` : "";
 &nbsp;
-    return { where, sanitizedInputs };
+    return { where, values };
   }
 &nbsp;
   /** Given a company handle, return data about company.
@@ -649,7 +652,7 @@ module.exports = Company;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank">istanbul</a>
-                at Wed Aug 04 2021 15:26:44 GMT-0700 (Pacific Daylight Time)
+                at Wed Aug 04 2021 18:00:52 GMT-0600 (Mountain Daylight Time)
             </div>
         </div>
         <script src="../../prettify.js"></script>

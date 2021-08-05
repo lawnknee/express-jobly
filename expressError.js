@@ -31,7 +31,7 @@ class UnauthorizedError extends ExpressError {
 /** 400 BAD REQUEST error. */
 
 class BadRequestError extends ExpressError {
-  constructor(message = "Bad Request") {
+  constructor(message) {
     super(message, 400);
   }
 }
