@@ -1,3 +1,5 @@
+"use strict";
+
 /*
 Creating a job
 - working, admins only
