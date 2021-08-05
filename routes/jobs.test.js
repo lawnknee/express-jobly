@@ -1,5 +1,36 @@
 "use strict";
 
+const request = require("supertest");
+
+const db = require("../db");
+const app = require("../app");
+
+const {
+  commonBeforeAll,
+  commonBeforeEach,
+  commonAfterEach,
+  commonAfterAll,
+  u1Token,
+  adminToken,
+} = require("./_testCommon");
+const { findAll } = require("../models/company");
+const { ForbiddenError } = require("../expressError");
+
+beforeAll(commonBeforeAll);
+beforeEach(commonBeforeEach);
+afterEach(commonAfterEach);
+afterAll(commonAfterAll);
+
+/************************************** POST /jobs */
+
+describe("POST /jobs", function () {
+  const newJob = {
+    title: "new",
+    salary: "New",
+    equity: "http://new.img",
+    company_handle: "DescNew",
+  };
+});
 /*
 Creating a job
 - working, admins only
