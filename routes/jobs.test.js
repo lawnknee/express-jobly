@@ -15,30 +15,113 @@ const {
 } = require("./_testCommon");
 const { findAll } = require("../models/company");
 const { ForbiddenError } = require("../expressError");
+const Job = require("../models/job");
 
 beforeAll(commonBeforeAll);
 beforeEach(commonBeforeEach);
 afterEach(commonAfterEach);
 afterAll(commonAfterAll);
 
+const OK = 200;
+const CREATED = 201;
+const BADREQUEST = 400;
+const UNAUTH = 401;
+const FORBIDDEN = 403;
+
 /************************************** POST /jobs */
 
 describe("POST /jobs", function () {
   const newJob = {
-    title: "new",
-    salary: "New",
-    equity: "http://new.img",
-    company_handle: "DescNew",
+    title: "test POST job",
+    salary: 10000,
+    equity: 0.1,
+    companyHandle: "c1",
   };
+
+  test("works: admins", async function () {
+    const resp = await request(app)
+      .post("/jobs")
+      .send(newJob)
+      .set("authorization", `Bearer ${adminToken}`);
+
+    expect(resp.statusCode).toEqual(CREATED);
+    expect(resp.body).toEqual({
+      job: {
+        companyhandle: "c1",
+        equity: "0.1",
+        id: expect.any(Number),
+        salary: 10000,
+        title: "test POST job",
+      },
+    });
+  });
+
+  test("forbidden for non-admin", async function () {
+    const resp = await request(app)
+      .post("/jobs")
+      .send(newJob)
+      .set("authorization", `Bearer ${u1Token}`);
+
+    expect(resp.statusCode).toEqual(FORBIDDEN);
+  });
+
+  test("unauth for anon", async function () {
+    const resp = await request(app).post("/jobs").send(newJob);
+
+    expect(resp.statusCode).toEqual(UNAUTH);
+  });
+
+  test("badrequest: invalid info", async function () {
+    const resp = await request(app)
+      .post("/jobs")
+      .send({
+        title: "test job1",
+        salary: "10000",
+        equity: true,
+        companyHandle: "c1",
+        id: 10,
+      })
+      .set("authorization", `Bearer ${adminToken}`);
+    expect(resp.statusCode).toEqual(BADREQUEST);
+    expect(resp.body).toEqual({
+      error: {
+        message: [
+          "instance.salary is not of a type(s) integer",
+          "instance.equity is not of a type(s) number",
+          'instance is not allowed to have the additional property "id"',
+        ],
+        status: 400,
+      },
+    });
+  });
+
+  test("badrequest: missing data", async function () {
+    const resp = await request(app)
+      .post("/jobs")
+      .send({})
+      .set("authorization", `Bearer ${adminToken}`);
+    expect(resp.statusCode).toEqual(BADREQUEST);
+    expect(resp.body).toEqual({
+      error: {
+        message: [
+          'instance requires property "title"',
+          'instance requires property "companyHandle"',
+        ],
+        status: 400,
+      },
+    });
+  });
 });
+
+/************************************** GET /jobs */
+
 /*
 Creating a job
-- working, admins only
-- unauth anon
-- forbidden non-admin
-- badreq duplicate
-- badreq invalid info
-- badreq missing data
+done - working, admins only
+done unauth anon
+done forbidden non-admin
+done badreq invalid info
+done badreq missing data
 
 Getting all jobs
 - working, no filter, anon

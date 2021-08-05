@@ -45,6 +45,15 @@ describe("POST /companies", function () {
     });
   });
 
+  test("non-admin request", async function () {
+    const resp = await request(app)
+      .post("/companies")
+      .send(newCompany)
+      .set("authorization", `Bearer ${u1Token}`);
+
+    expect(resp.statusCode).toEqual(403);
+  });
+  
   test("bad request with missing data", async function () {
     const resp = await request(app)
       .post("/companies")
@@ -65,15 +74,6 @@ describe("POST /companies", function () {
       })
       .set("authorization", `Bearer ${adminToken}`);
     expect(resp.statusCode).toEqual(400);
-  });
-
-  test("non-admin request", async function () {
-    const resp = await request(app)
-      .post("/companies")
-      .send(newCompany)
-      .set("authorization", `Bearer ${u1Token}`);
-
-    expect(resp.statusCode).toEqual(403);
   });
 });
 
