@@ -40,7 +40,7 @@ router.post(
   }
 );
 /** GET /  =>
- *   { companies: [ { title, salary, equity, companyHandle }, ...] }
+ *   { jobs: [ { title, salary, equity, companyHandle }, ...] }
  *
  * Can filter on provided search filters:
  * - minSalary

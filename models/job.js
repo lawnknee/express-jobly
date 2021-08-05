@@ -14,7 +14,7 @@ class Job {
                      title,
                      salary,
                      equity,
-                     company_handle AS companyHandle`,
+                     company_handle AS "companyHandle"`,
       [title, salary, equity, companyHandle]
     );
 
@@ -32,7 +32,10 @@ class Job {
     });
 
     const result = await db.query(
-      `SELECT title, salary, equity, company_handle
+      `SELECT title, 
+              salary, 
+              equity, 
+              company_handle AS "companyHandle"
          FROM jobs
          ${where}
          ORDER BY title`,
@@ -71,7 +74,7 @@ class Job {
               title, 
               salary, 
               equity, 
-              company_handle
+              company_handle AS "companyHandle",
           FROM jobs
           WHERE id = $1`,
           [id]

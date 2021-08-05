@@ -10,6 +10,8 @@ const {
   commonBeforeEach,
   commonAfterEach,
   commonAfterAll,
+  j1Id,
+  j2Id,
   u1Token,
   adminToken,
 } = require("./_testCommon");
@@ -47,7 +49,7 @@ describe("POST /jobs", function () {
     expect(resp.statusCode).toEqual(CREATED);
     expect(resp.body).toEqual({
       job: {
-        companyhandle: "c1",
+        companyHandle: "c1",
         equity: "0.1",
         id: expect.any(Number),
         salary: 10000,
@@ -114,6 +116,73 @@ describe("POST /jobs", function () {
 });
 
 /************************************** GET /jobs */
+
+describe("GET /jobs", function () {
+  test("ok for anon", async function () {
+    const resp = await request(app).get("/jobs");
+    expect(resp.body).toEqual({
+      jobs: [
+        {
+          title: "j1",
+          salary: 10000,
+          equity: "0.1",
+          companyHandle: "c1",
+        },
+        {
+          title: "j2",
+          salary: 200000,
+          equity: "0.7",
+          companyHandle: "c2",
+        },
+      ],
+    });
+  });
+
+  test("works: validates incoming request", async function () {
+    const resp = await request(app)
+      .get("/jobs")
+      .query({ title: "j1", minSalary: 5000, hasEquity: true });
+
+    expect(resp.body).toEqual({
+      jobs: [
+        {
+          title: "j1",
+          salary: 10000,
+          equity: "0.1",
+          companyHandle: "c1",
+        },
+      ],
+    });
+  });
+
+  test("invalid: invalid incoming request", async function () {
+    const resp = await request(app)
+      .get("/jobs")
+      .query({ badTitle: "2", minSalary: "one", hasEquity: 'true' });
+
+    expect(resp.body).toEqual({
+      error: {
+        message: [
+          "instance.minSalary is not of a type(s) integer",
+          "instance is not allowed to have the additional property \"badTitle\""
+        ],
+        status: 400,
+      },
+    });
+    expect(resp.statusCode).toEqual(400);
+  });
+
+  test("fails: test next() handler", async function () {
+    // there's no normal failure event which will cause this route to fail ---
+    // thus making it hard to test that the error-handler works with it. This
+    // should cause an error, all right :)
+    await db.query("DROP TABLE jobs CASCADE");
+    const resp = await request(app)
+      .get("/jobs")
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(500);
+  });
+});
 
 /*
 Creating a job
