@@ -46,17 +46,39 @@ function ensureLoggedIn(req, res, next) {
  *  If not, raises ForbiddenError().
  */
 
-function ensureIsAdmnin(req, res, next) {
+function ensureIsAdmin(req, res, next) {
+  // check user is logged in first
+
+  if ((!res.locals.user) || (!res.locals.user.isAdmin)) throw new ForbiddenError();
+  
+  return next();
+
+}
+
+/** Middleware to use when route requires user to be an admin or
+ *  the same username as the endpoint.
+ *  
+ * 
+ * If not, raise Unauthorized.
+*/
+function ensureIsAdminOrEndpointUser(req, res, next) {
+  // no need to wrap with try catch
   try {
-    if (!res.locals.user.isAdmin) throw new ForbiddenError();
+    const user = res.locals.user;
+    // check user logged in
+    if (!(user.username === req.params.username || user.isAdmin === true)) {
+      throw new ForbiddenError();
+    }
     return next();
-  } catch (err) {
-    return next(err);
+  } catch(err) {
+    return next(err)
   }
 }
+
 
 module.exports = {
   authenticateJWT,
   ensureLoggedIn,
-  ensureIsAdmnin,
+  ensureIsAdmin,
+  ensureIsAdminOrEndpointUser,
 };

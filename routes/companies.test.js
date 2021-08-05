@@ -21,6 +21,8 @@ beforeEach(commonBeforeEach);
 afterEach(commonAfterEach);
 afterAll(commonAfterAll);
 
+// global variables for status codes to names
+
 /************************************** POST /companies */
 
 describe("POST /companies", function () {
@@ -210,6 +212,17 @@ describe("PATCH /companies/:handle", function () {
     });
   });
 
+  test("non-admin request", async function () {
+    const resp = await request(app)
+      .patch(`/companies/c1`)
+      .send({
+        name: "C1-new",
+      })
+      .set("authorization", `Bearer ${u1Token}`);
+
+    expect(resp.statusCode).toEqual(403);
+  });
+
   test("unauth for anon", async function () {
     const resp = await request(app).patch(`/companies/c1`).send({
       name: "C1-new",
@@ -246,16 +259,6 @@ describe("PATCH /companies/:handle", function () {
       .set("authorization", `Bearer ${adminToken}`);
     expect(resp.statusCode).toEqual(400);
   });
-  test("non-admin request", async function () {
-    const resp = await request(app)
-      .patch(`/companies/c1`)
-      .send({
-        name: "C1-new",
-      })
-      .set("authorization", `Bearer ${u1Token}`);
-
-    expect(resp.statusCode).toEqual(403);
-  });
 });
 
 /************************************** DELETE /companies/:handle */
@@ -268,6 +271,13 @@ describe("DELETE /companies/:handle", function () {
     expect(resp.body).toEqual({ deleted: "c1" });
   });
 
+  test("non-admin request", async function () {
+    const resp = await request(app)
+      .delete(`/companies/c1`)
+      .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(403);
+  });
+  
   test("unauth for anon", async function () {
     const resp = await request(app).delete(`/companies/c1`);
     expect(resp.statusCode).toEqual(401);
@@ -278,11 +288,5 @@ describe("DELETE /companies/:handle", function () {
       .delete(`/companies/nope`)
       .set("authorization", `Bearer ${adminToken}`);
     expect(resp.statusCode).toEqual(404);
-  });
-  test("non-admin request", async function () {
-    const resp = await request(app)
-      .delete(`/companies/c1`)
-      .set("authorization", `Bearer ${u1Token}`);
-    expect(resp.statusCode).toEqual(403);
   });
 });

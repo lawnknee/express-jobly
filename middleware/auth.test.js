@@ -43,7 +43,7 @@ describe("authenticateJWT", function () {
   });
 
   test("works: invalid token", function () {
-    expect.assertions(2);
+    expect.assertions(2); // looking to make sure next() got called (line 50 and 53)
     const req = { headers: { authorization: `Bearer ${badJwt}` } };
     const res = { locals: {} };
     const next = function (err) {

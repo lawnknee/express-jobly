@@ -32,3 +32,6 @@ CREATE TABLE applications (
     REFERENCES jobs ON DELETE CASCADE,
   PRIMARY KEY (username, job_id)
 );
+
+-- float : approximate, not all values in the data type range can be represented exactly
+-- numeric : fixed-precision, all values int eh data type can be represented with precision
