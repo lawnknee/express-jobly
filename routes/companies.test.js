@@ -53,7 +53,7 @@ describe("POST /companies", function () {
 
     expect(resp.statusCode).toEqual(403);
   });
-  
+
   test("bad request with missing data", async function () {
     const resp = await request(app)
       .post("/companies")
@@ -168,6 +168,14 @@ describe("GET /companies/:handle", function () {
         description: "Desc1",
         numEmployees: 1,
         logoUrl: "http://c1.img",
+        jobs: [
+          {
+            equity: "0.1",
+            id: expect.any(Number),
+            salary: 10000,
+            title: "j1",
+          },
+        ],
       },
     });
   });
@@ -181,6 +189,14 @@ describe("GET /companies/:handle", function () {
         description: "Desc2",
         numEmployees: 2,
         logoUrl: "http://c2.img",
+        jobs: [
+          {
+            equity: "0.7",
+            id: expect.any(Number),
+            salary: 200000,
+            title: "j2",
+          },
+        ],
       },
     });
   });
@@ -277,7 +293,7 @@ describe("DELETE /companies/:handle", function () {
       .set("authorization", `Bearer ${u1Token}`);
     expect(resp.statusCode).toEqual(403);
   });
-  
+
   test("unauth for anon", async function () {
     const resp = await request(app).delete(`/companies/c1`);
     expect(resp.statusCode).toEqual(401);

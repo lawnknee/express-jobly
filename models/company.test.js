@@ -149,6 +149,14 @@ describe("get", function () {
       description: "Desc1",
       numEmployees: 1,
       logoUrl: "http://c1.img",
+      jobs: [
+        {
+          equity: "0.01",
+          id: expect.any(Number),
+          salary: 10000,
+          title: "job1",
+        },
+      ],
     });
   });
 
@@ -172,7 +180,7 @@ describe("update", function () {
     logoUrl: "http://new.img",
   };
 
-  test("works", async function () {
+  test("works with valid data", async function () {
     let company = await Company.update("c1", updateData);
     expect(company).toEqual({
       handle: "c1",

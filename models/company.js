@@ -51,14 +51,18 @@ class Company {
    *      - nameLike (will find case-insensitive, partial matches)
    *
    *  Expects a query object; defaulted to empty obj if no arguments were provided.
-   *  
+   *
    *  Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
 
   static async findAll(query = {}) {
     const { nameLike, minEmployees, maxEmployees } = query;
 
-    const { where, values } = Company._whereClauseBuilder({ nameLike, minEmployees, maxEmployees });
+    const { where, values } = Company._whereClauseBuilder({
+      nameLike,
+      minEmployees,
+      maxEmployees,
+    });
 
     const companiesRes = await db.query(
       `SELECT handle,
@@ -75,10 +79,10 @@ class Company {
   }
 
   /** Builds where clause based on filtering criteria in query string.
-   * 
+   *
    *  Expects an object with filtering criteria (minEmployees, maxEmployees, nameLike)
    *    as keys, and user inputs as values.
-   *    
+   *
    *  Returns an object like:
    *    {
    *      where: 'WHERE name ILIKE $1 AND ...'
@@ -86,9 +90,8 @@ class Company {
    *    }
    */
   static _whereClauseBuilder({ nameLike, minEmployees, maxEmployees }) {
-  
     // if min employees > max employees, throws a BadRequest error.
-    if ((minEmployees && maxEmployees) && (minEmployees > maxEmployees)){
+    if (minEmployees && maxEmployees && minEmployees > maxEmployees) {
       throw new BadRequestError(
         "Minimum employees cannot be greater than Maximum employees."
       );
@@ -110,7 +113,8 @@ class Company {
       values.push(maxEmployees);
     }
 
-    let where = whereParts.length > 0 ? `WHERE ${whereParts.join(" AND ")}` : "";
+    let where =
+      whereParts.length > 0 ? `WHERE ${whereParts.join(" AND ")}` : "";
 
     return { where, values };
   }
@@ -138,6 +142,19 @@ class Company {
     const company = companyRes.rows[0];
 
     if (!company) throw new NotFoundError(`No company: ${handle}`);
+
+    const companyJobs = await db.query(
+      `SELECT id,
+              title,
+              salary,
+              equity
+       FROM jobs
+       WHERE company_handle = $1
+       ORDER BY id`,
+      [handle]
+    );
+
+    company.jobs = companyJobs.rows;
 
     return company;
   }
