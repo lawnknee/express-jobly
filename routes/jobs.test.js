@@ -184,6 +184,8 @@ describe("GET /jobs", function () {
   });
 });
 
+/************************************** GET /jobs/:id */
+
 describe("GET /jobs/:id", function () {
   test("working for anon", async function () {
     const resp = await request(app).get(`/jobs/${jobIds.id1}`);
@@ -223,6 +225,8 @@ describe("GET /jobs/:id", function () {
   });
 });
 
+/************************************** PATCH /jobs/:id */
+
 describe("PATCH /jobs/:id", function () {
   test("works: admins", async function () {
     const resp = await request(app)
@@ -236,6 +240,7 @@ describe("PATCH /jobs/:id", function () {
       job: {
         companyHandle: "c1",
         id: expect.any(Number),
+        equity: "0.1",
         salary: 10000,
         title: "patch job title",
       },
@@ -304,6 +309,8 @@ describe("PATCH /jobs/:id", function () {
   });
 });
 
+/************************************** DELETE /jobs/:id */
+
 describe("DELETE /jobs/:id", function () {
   test("works: admin", async function () {
     const resp = await request(app)
@@ -340,12 +347,3 @@ describe("DELETE /jobs/:id", function () {
     expect(resp.body).toEqual({ error: { message: "No job: 0", status: 404 } });
   });
 });
-
-/*
-
-Delete job posting
-- working, admin only
-- unauth anon
-- forbidden non-admin
-- notfound admin, invalid jobid
-*/

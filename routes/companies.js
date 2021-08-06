@@ -26,7 +26,6 @@ const router = new express.Router();
 
 router.post(
   "/",
-  ensureLoggedIn,
   ensureIsAdmin,
   async function (req, res, next) {
     const validator = jsonschema.validate(req.body, companyNewSchema);
@@ -99,7 +98,6 @@ router.get("/:handle", async function (req, res, next) {
 
 router.patch(
   "/:handle",
-  ensureLoggedIn,
   ensureIsAdmin,
   async function (req, res, next) {
     const validator = jsonschema.validate(req.body, companyUpdateSchema);
@@ -120,7 +118,6 @@ router.patch(
 
 router.delete(
   "/:handle",
-  ensureLoggedIn,
   ensureIsAdmin,
   async function (req, res, next) {
     await Company.remove(req.params.handle);

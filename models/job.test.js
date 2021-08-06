@@ -23,7 +23,7 @@ describe("create", function () {
   const newJob = {
     title: "test job",
     salary: 200000,
-    equity: "0.5",
+    equity: 0.5,
     companyHandle: "c1",
   };
 
@@ -103,6 +103,40 @@ describe("findAll with filters", function () {
   });
 });
 
+/************************************** _whereBuilder */
+
+describe("_whereBuilder", function () {
+  test("filter with whereBuilder", function () {
+    let query = {
+      title: "1",
+      minSalary: 10000,
+      hasEquity: true,
+    };
+
+    let where = Job._whereClauseBuilder(query);
+
+    expect(where).toEqual({
+      values: ["%1%", 10000, 0],
+      where: "WHERE title ILIKE $1 AND salary >= $2 AND equity > $3",
+    });
+  });
+  
+  test("filter with whereBuilder", function () {
+    let query = {
+      title: "1",
+      minSalary: 10000,
+      hasEquity: true,
+    };
+
+    let where = Job._whereClauseBuilder(query);
+
+    expect(where).toEqual({
+      values: ["%1%", 10000, 0],
+      where: "WHERE title ILIKE $1 AND salary >= $2 AND equity > $3",
+    });
+  });
+});
+
 /************************************** get */
 
 describe("get", function () {
@@ -162,17 +196,14 @@ describe("update", function () {
       expect(err instanceof BadRequestError).toBeTruthy();
     }
   });
-})
+});
 
 /************************************** remove */
 
 describe("remove", function () {
   test("works", async function () {
     await Job.remove(jobIds.id1);
-    const res = await db.query(
-      "SELECT id FROM jobs WHERE id=$1",
-      [jobIds.id1]
-    );
+    const res = await db.query("SELECT id FROM jobs WHERE id=$1", [jobIds.id1]);
     expect(res.rows.length).toEqual(0);
   });
 

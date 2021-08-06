@@ -61,17 +61,14 @@ function ensureIsAdmin(req, res, next) {
  * If not, raise Unauthorized.
 */
 function ensureIsAdminOrEndpointUser(req, res, next) {
-  // no need to wrap with try catch
-  try {
-    const user = res.locals.user;
-    // check user logged in
-    if (!(user.username === req.params.username || user.isAdmin === true)) {
-      throw new ForbiddenError();
-    }
-    return next();
-  } catch(err) {
-    return next(err)
+  if (!res.locals.user) throw new UnauthorizedError();
+
+  const user = res.locals.user;
+  if (!(user.username === req.params.username || user.isAdmin === true)) { 
+    throw new ForbiddenError();
   }
+  
+  return next();
 }
 
 

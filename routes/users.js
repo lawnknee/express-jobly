@@ -32,7 +32,6 @@ const router = express.Router();
 
 router.post(
   "/",
-  ensureLoggedIn,
   ensureIsAdmin,
   async function (req, res, next) {
     const validator = jsonschema.validate(req.body, userNewSchema);
@@ -68,7 +67,6 @@ router.get("/", ensureLoggedIn, ensureIsAdmin, async function (req, res, next) {
 
 router.get(
   "/:username",
-  ensureLoggedIn,
   ensureIsAdminOrEndpointUser,
   async function (req, res, next) {
     const user = await User.get(req.params.username);
@@ -88,7 +86,6 @@ router.get(
 
 router.patch(
   "/:username",
-  ensureLoggedIn,
   ensureIsAdminOrEndpointUser,
   async function (req, res, next) {
     const validator = jsonschema.validate(req.body, userUpdateSchema);
@@ -109,7 +106,6 @@ router.patch(
 
 router.delete(
   "/:username",
-  ensureLoggedIn,
   ensureIsAdminOrEndpointUser,
   async function (req, res, next) {
     await User.remove(req.params.username);
