@@ -75,4 +75,28 @@ describe("ensureLoggedIn", function () {
     };
     ensureLoggedIn(req, res, next);
   });
+
+  describe("ensureIsAdmin", function () {
+    // test("works", function () {
+      
+    // });
+  
+    // test("forbidden if non-admin", function () {
+      
+    // });
+  });
+
+  describe("ensureIsAdminOrEndpointUser", function () {
+    // test("works", function () {
+      
+    // });
+  
+    // test("unauth if not endpoint user", function () {
+      
+    // });
+
+    // test("forbidden if non-admin", function () {
+      
+    // });
+  });
 });

@@ -36,7 +36,7 @@ class Job {
    *    Optional filtering criteria:
    *      - title (will find case-insensitive, partial matches)
    *      - minSalary
-   *      - equity
+   *      - hasEquity
    *
    *  Expects a query object; defaulted to empty obj if no arguments were provided.
    *  
@@ -52,7 +52,8 @@ class Job {
     });
 
     const result = await db.query(
-      `SELECT title, 
+      `SELECT id,
+              title, 
               salary, 
               equity, 
               company_handle AS "companyHandle"
@@ -61,7 +62,8 @@ class Job {
          ORDER BY title`,
       values
     );
-    
+    // TODO: join with companies table to get information about that company
+
     return result.rows;
   }
 
@@ -119,8 +121,10 @@ class Job {
               company_handle AS "companyHandle"
           FROM jobs
           WHERE id = $1`,
-      [id]
+          [id]
     );
+
+    // TODO: include information about the company
 
     const job = result.rows[0];
 
@@ -167,7 +171,7 @@ class Job {
 
   /** Delete given job from database; returns undefined.
    *
-   * Throws NotFoundError if company not found.
+   * Throws NotFoundError if job not found.
    **/
 
   static async remove(id) {

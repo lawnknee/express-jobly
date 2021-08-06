@@ -46,8 +46,20 @@ describe("findAll", function () {
   test("works: no filter", async function () {
     let jobs = await Job.findAll();
     expect(jobs).toEqual([
-      { companyHandle: "c1", equity: "0.01", salary: 10000, title: "job1" },
-      { companyHandle: "c2", equity: "0.07", salary: 200000, title: "job2" },
+      {
+        id: expect.any(Number),
+        companyHandle: "c1",
+        equity: "0.01",
+        salary: 10000,
+        title: "job1",
+      },
+      {
+        id: expect.any(Number),
+        companyHandle: "c2",
+        equity: "0.07",
+        salary: 200000,
+        title: "job2",
+      },
     ]);
   });
 });
@@ -62,7 +74,13 @@ describe("findAll with filters", function () {
     let jobs = await Job.findAll(query);
 
     expect(jobs).toEqual([
-      { companyHandle: "c1", equity: "0.01", salary: 10000, title: "job1" },
+      {
+        id: expect.any(Number),
+        companyHandle: "c1",
+        equity: "0.01",
+        salary: 10000,
+        title: "job1",
+      },
     ]);
   });
 
@@ -74,7 +92,13 @@ describe("findAll with filters", function () {
     let jobs = await Job.findAll(query);
 
     expect(jobs).toEqual([
-      { companyHandle: "c2", equity: "0.07", salary: 200000, title: "job2" },
+      {
+        id: expect.any(Number),
+        companyHandle: "c2",
+        equity: "0.07",
+        salary: 200000,
+        title: "job2",
+      },
     ]);
   });
 
@@ -86,7 +110,13 @@ describe("findAll with filters", function () {
     let jobs = await Job.findAll(query);
 
     expect(jobs).toEqual([
-      { companyHandle: "c2", equity: "0.07", salary: 200000, title: "job2" },
+      {
+        id: expect.any(Number),
+        companyHandle: "c2",
+        equity: "0.07",
+        salary: 200000,
+        title: "job2",
+      },
     ]);
   });
 
@@ -98,10 +128,24 @@ describe("findAll with filters", function () {
     let jobs = await Job.findAll(query);
 
     expect(jobs).toEqual([
-      { companyHandle: "c1", equity: "0.01", salary: 10000, title: "job1" },
-      { companyHandle: "c2", equity: "0.07", salary: 200000, title: "job2" },
+      {
+        id: expect.any(Number),
+        companyHandle: "c1",
+        equity: "0.01",
+        salary: 10000,
+        title: "job1",
+      },
+      {
+        id: expect.any(Number),
+        companyHandle: "c2",
+        equity: "0.07",
+        salary: 200000,
+        title: "job2",
+      },
     ]);
   });
+
+  // TODO: try mocking _whereBuilder
 });
 
 /************************************** _whereBuilder */
@@ -136,6 +180,8 @@ describe("_whereBuilder", function () {
       where: "WHERE title ILIKE $1 AND salary >= $2 AND equity > $3",
     });
   });
+
+  // TODO: test fail fast
 });
 
 /************************************** get */

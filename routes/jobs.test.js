@@ -14,9 +14,6 @@ const {
   u1Token,
   adminToken,
 } = require("./_testCommon");
-const { findAll } = require("../models/company");
-const { ForbiddenError, NotFoundError } = require("../expressError");
-const Job = require("../models/job");
 
 beforeAll(commonBeforeAll);
 beforeEach(commonBeforeEach);
@@ -123,12 +120,14 @@ describe("GET /jobs", function () {
     expect(resp.body).toEqual({
       jobs: [
         {
+          id: expect.any(Number),
           title: "j1",
           salary: 10000,
           equity: "0.1",
           companyHandle: "c1",
         },
         {
+          id: expect.any(Number),
           title: "j2",
           salary: 200000,
           equity: "0.7",
@@ -146,6 +145,7 @@ describe("GET /jobs", function () {
     expect(resp.body).toEqual({
       jobs: [
         {
+          id: expect.any(Number),
           title: "j1",
           salary: 10000,
           equity: "0.1",
@@ -169,7 +169,7 @@ describe("GET /jobs", function () {
         status: 400,
       },
     });
-    expect(resp.statusCode).toEqual(400);
+    expect(resp.statusCode).toEqual(BADREQUEST);
   });
 
   test("fails: test next() handler", async function () {
@@ -307,6 +307,8 @@ describe("PATCH /jobs/:id", function () {
       },
     });
   });
+
+  // TODO: test no one can change companyHandle
 });
 
 /************************************** DELETE /jobs/:id */
