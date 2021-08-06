@@ -1,5 +1,6 @@
 "use strict";
 
+const { request } = require("express");
 const db = require("../db.js");
 const { BadRequestError, NotFoundError } = require("../expressError");
 const Job = require("./job.js");
@@ -120,7 +121,7 @@ describe("_whereBuilder", function () {
       where: "WHERE title ILIKE $1 AND salary >= $2 AND equity > $3",
     });
   });
-  
+
   test("filter with whereBuilder", function () {
     let query = {
       title: "1",
