@@ -3,6 +3,8 @@ const bcrypt = require("bcrypt");
 const db = require("../db.js");
 const { BCRYPT_WORK_FACTOR } = require("../config");
 
+let jobIds = {};
+
 async function commonBeforeAll() {
   // noinspection SqlWithoutWhere
   await db.query("DELETE FROM companies");
@@ -28,6 +30,15 @@ async function commonBeforeAll() {
         await bcrypt.hash("password1", BCRYPT_WORK_FACTOR),
         await bcrypt.hash("password2", BCRYPT_WORK_FACTOR),
       ]);
+  
+  const jobs = await db.query(`
+  INSERT INTO jobs(title, salary, equity, company_handle)
+  VALUES('job1', 10000, '0.01', 'c1'),
+        ('job2', 200000, '0.07', 'c2')
+  RETURNING id`);
+
+  jobIds.id1 = jobs.rows[0].id;
+  jobIds.id2 = jobs.rows[1].id;
 }
 
 async function commonBeforeEach() {
@@ -42,10 +53,10 @@ async function commonAfterAll() {
   await db.end();
 }
 
-
 module.exports = {
   commonBeforeAll,
   commonBeforeEach,
   commonAfterEach,
   commonAfterAll,
+  jobIds,
 };

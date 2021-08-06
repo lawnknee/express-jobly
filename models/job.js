@@ -99,7 +99,8 @@ class Job {
         WHERE id = ${idVarIdx}
         RETURNING id, 
                   title, 
-                  salary, 
+                  salary,
+                  equity, 
                   company_handle AS "companyHandle"`;
 
     const result = await db.query(querySql, [...values, id]);
