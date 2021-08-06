@@ -13,6 +13,7 @@ const {
   commonAfterAll,
   u1Token,
   adminToken,
+  jobIds,
 } = require("./_testCommon");
 
 beforeAll(commonBeforeAll);
@@ -206,6 +207,7 @@ describe("GET /users/:username", function () {
         lastName: "U1L",
         email: "user1@user.com",
         isAdmin: false,
+        jobs: []
       },
     });
   });
@@ -221,6 +223,7 @@ describe("GET /users/:username", function () {
         lastName: "U1L",
         email: "user1@user.com",
         isAdmin: false,
+        jobs: []
       },
     });
   });
@@ -408,6 +411,44 @@ describe("DELETE /users/:username", function () {
   test("not found if user missing", async function () {
     const resp = await request(app)
         .delete(`/users/nope`)
+        .set("authorization", `Bearer ${adminToken}`);
+    expect(resp.statusCode).toEqual(NOTFOUND);
+  });
+});
+
+/************************************** POST /users/:username/jobs/:id */
+
+describe("POST /users/:username/jobs/:id", function () {
+  test("works for admin", async function () {
+    const resp = await request(app)
+        .post(`/users/u1/jobs/${jobIds.id1}`)
+        .set("authorization", `Bearer ${adminToken}`);
+    expect(resp.body).toEqual({ applied: jobIds.id1 });
+  });
+
+  test("works for same user", async function () {
+    const resp = await request(app)
+        .post(`/users/u1/jobs/${jobIds.id1}`)
+        .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.body).toEqual({ applied: jobIds.id1 });
+  });
+
+  test("unauth for non-admin and non-matching user", async function () {
+    const resp = await request(app)
+        .post(`/users/u2/jobs/${jobIds.id1}`)
+        .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(FORBIDDEN);
+  });
+
+  test("unauth for anon", async function () {
+    const resp = await request(app)
+        .post(`/users/u1/jobs/${jobIds.id1}`)
+    expect(resp.statusCode).toEqual(UNAUTH);
+  });
+
+  test("not found if user missing", async function () {
+    const resp = await request(app)
+        .post(`/users/none/jobs/${jobIds.id1}`)
         .set("authorization", `Bearer ${adminToken}`);
     expect(resp.statusCode).toEqual(NOTFOUND);
   });
