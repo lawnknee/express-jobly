@@ -39,6 +39,11 @@ async function commonBeforeAll() {
 
   jobIds.id1 = jobs.rows[0].id;
   jobIds.id2 = jobs.rows[1].id;
+
+  await db.query(`
+  INSERT INTO applications(username, job_id)
+  VALUES ('u1', $1)`,
+  [jobIds.id1])
 }
 
 async function commonBeforeEach() {
