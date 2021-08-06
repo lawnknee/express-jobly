@@ -3,6 +3,7 @@
 const db = require("../db");
 const bcrypt = require("bcrypt");
 const { sqlForPartialUpdate } = require("../helpers/sql");
+
 const {
   NotFoundError,
   BadRequestError,
@@ -10,7 +11,6 @@ const {
 } = require("../expressError");
 
 const { BCRYPT_WORK_FACTOR } = require("../config.js");
-const { notify } = require("../routes/users");
 
 /** Related functions for users. */
 
@@ -210,9 +210,11 @@ class User {
          WHERE username = $1`,
       [username]
     );
+
     if (!user.rows[0]) {
       throw new NotFoundError("Username not found");
     }
+
     const job = await db.query(
       `SELECT id
        FROM jobs 
@@ -225,13 +227,13 @@ class User {
 
     try {
       await db.query(
-        `INSERT INTO (username, job_id)
+        `INSERT INTO applications (username, job_id)
          VALUES ($1, $2)`,
-        [username, jobId]
-      );
+        [username, jobId]);
     } catch (err) {
-      throw new BadRequestError("The job has already been applied to");
+      throw new BadRequestError("Job has already been applied to.")
     }
+    
   }
 }
 
