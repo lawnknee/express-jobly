@@ -30,19 +30,30 @@ const router = express.Router();
  * Authorization required: login and admin
  **/
 
-router.post(
-  "/",
-  ensureIsAdmin,
-  async function (req, res, next) {
-    const validator = jsonschema.validate(req.body, userNewSchema);
-    if (!validator.valid) {
-      const errs = validator.errors.map((e) => e.stack);
-      throw new BadRequestError(errs);
-    }
+router.post("/", ensureIsAdmin, async function (req, res, next) {
+  const validator = jsonschema.validate(req.body, userNewSchema);
+  if (!validator.valid) {
+    const errs = validator.errors.map((e) => e.stack);
+    throw new BadRequestError(errs);
+  }
 
-    const user = await User.register(req.body);
-    const token = createToken(user);
-    return res.status(201).json({ user, token });
+  const user = await User.register(req.body);
+  const token = createToken(user);
+  return res.status(201).json({ user, token });
+});
+
+//TODO Docstring
+router.post(
+  "/:username/jobs/:id",
+  ensureIsAdminOrEndpointUser,
+  async function (req, res, next) {
+    const username = req.params.username;
+    const jobId = Number(req.params.id);
+    console.log(User.apply);
+    console.log(User.register);
+
+    await User.apply(username, jobId);
+    return res.json({ applied: jobId });
   }
 );
 
