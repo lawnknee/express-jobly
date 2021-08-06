@@ -1,11 +1,20 @@
 "use strict";
 
 const db = require("../db");
-const { BadRequestError, NotFoundError } = require("../expressError");
+const { NotFoundError } = require("../expressError");
 const { sqlForPartialUpdate } = require("../helpers/sql");
-const { _whereClauseBuilder } = require("./company");
+
+/** Related functions for jobs. */
 
 class Job {
+  /** Create a job (from data), update db, return new job data.
+   *
+   * data should be { id, title, salary, equity }
+   *
+   * Returns { title, salary, equity, companyHandle }
+   *
+   * */
+
   static async create({ title, salary, equity, companyHandle }) {
     const result = await db.query(
       `INSERT INTO jobs (title, salary, equity, company_handle)
@@ -22,6 +31,17 @@ class Job {
 
     return job;
   }
+
+  /** Find all jobs with optional filtering criteria.
+   *    Optional filtering criteria:
+   *      - title (will find case-insensitive, partial matches)
+   *      - minSalary
+   *      - equity
+   *
+   *  Expects a query object; defaulted to empty obj if no arguments were provided.
+   *  
+   *  Returns [{ title, salary, equity, companyHandle }, ...]
+   * */
 
   static async findAll(query = {}) {
     const { title, minSalary, hasEquity } = query;
@@ -41,11 +61,27 @@ class Job {
          ORDER BY title`,
       values
     );
-
+    
     return result.rows;
   }
 
+  /** Builds where clause based on filtering criteria in query string.
+   * 
+   *  Expects an object with filtering criteria (title, minSalary, hasEquity)
+   *    as keys, and user inputs as values.
+   *    
+   *  Returns an object like:
+   *    {
+   *      where: 'WHERE title ILIKE $1 AND ...'
+   *      values: [ value1, ... ]
+   *    }
+   */
+
   static _whereClauseBuilder({ title, minSalary, hasEquity }) {
+    if (!title && !minSalary && !hasEquity) {
+      return '';
+    }
+
     let whereParts = [];
     let values = [];
 
@@ -62,11 +98,17 @@ class Job {
       values.push(0);
     }
 
-    let where =
-      whereParts.length > 0 ? `WHERE ${whereParts.join(" AND ")}` : "";
+    let where = `WHERE ${whereParts.join(" AND ")}`;
 
     return { where, values };
   }
+
+  /** Given a job id, return data about job.
+   *
+   * Returns { id, title, salary, equity, companyHandle }
+   *
+   * Throws NotFoundError if not found.
+   **/
 
   static async get(id) {
     const result = await db.query(
@@ -87,6 +129,18 @@ class Job {
     return job;
   }
 
+  /** Update job data with `data`.
+   *
+   * This is a "partial update" --- it's fine if data doesn't contain all the
+   * fields; this only changes provided ones.
+   *
+   * Data can include: { title, salary, equity }
+   *
+   * Returns { id, title, salary, equity, companyHandle }
+   *
+   * Throws NotFoundError if not found.
+   */
+
   static async update(id, data) {
     const { setCols, values } = sqlForPartialUpdate(data, {
       companyHandle: "company_handle",
@@ -105,11 +159,16 @@ class Job {
 
     const result = await db.query(querySql, [...values, id]);
     const job = result.rows[0];
-
+    
     if (!job) throw new NotFoundError(`No job: ${id}`);
 
     return job;
   }
+
+  /** Delete given job from database; returns undefined.
+   *
+   * Throws NotFoundError if company not found.
+   **/
 
   static async remove(id) {
     const result = await db.query(
@@ -125,35 +184,5 @@ class Job {
   }
 }
 
-/* 
-
-Creating a job instance
-- working
-- badreq duplicate
-
-Find all
-- working, no filter
-- working, with filters
-
-jobWhereBuilder
-- working, with title
-- working, with minSalary
-- working, with hasEquity
-- working, combo
-
-get
-- working
-- notfound, invalid id
-
-update
-- working
-- badreq, no data given
-- notfound, invalid id
-
-delete
-- working
-- notfound, invalid id
-
-*/
 
 module.exports = Job;

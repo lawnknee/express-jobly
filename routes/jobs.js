@@ -26,7 +26,6 @@ const router = new express.Router();
 
 router.post(
   "/",
-  ensureLoggedIn,
   ensureIsAdmin,
   async function (req, res, next) {
     const validator = jsonschema.validate(req.body, jobNewSchema);
@@ -98,7 +97,6 @@ router.get("/:id", async function (req, res, next) {
 
 router.patch(
   "/:id",
-  ensureLoggedIn,
   ensureIsAdmin,
   async function (req, res, next) {
     const validator = jsonschema.validate(req.body, jobUpdateSchema);
@@ -119,7 +117,6 @@ router.patch(
 
 router.delete(
   "/:id",
-  ensureLoggedIn,
   ensureIsAdmin,
   async function (req, res, next) {
     await Job.remove(req.params.id);
