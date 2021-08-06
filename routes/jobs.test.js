@@ -303,6 +303,44 @@ describe("PATCH /jobs/:id", function () {
     });
   });
 });
+
+describe("DELETE /jobs/:id", function () {
+  test("works: admin", async function () {
+    const resp = await request(app)
+      .delete(`/jobs/${jobIds.id1}`)
+      .set("authorization", `Bearer ${adminToken}`);
+
+    expect(resp.statusCode).toEqual(OK);
+    expect(resp.body).toEqual({ deleted: expect.any(Number) });
+  });
+  test("unauth anon", async function () {
+    const resp = await request(app).delete(`/jobs/${jobIds.id2}`);
+
+    expect(resp.statusCode).toEqual(UNAUTH);
+    expect(resp.body).toEqual({
+      error: { message: "Unauthorized", status: 401 },
+    });
+  });
+  test("forbidden non-admin", async function () {
+    const resp = await request(app)
+      .delete(`/jobs/${jobIds.id2}`)
+      .set("authorization", `Bearer ${u1Token}`);
+
+    expect(resp.statusCode).toEqual(FORBIDDEN);
+    expect(resp.body).toEqual({
+      error: { message: "Bad Request", status: 403 },
+    });
+  });
+  test("notfound for invalid jobId", async function () {
+    const resp = await request(app)
+      .delete(`/jobs/0`)
+      .set("authorization", `Bearer ${adminToken}`);
+
+    expect(resp.statusCode).toEqual(NOTFOUND);
+    expect(resp.body).toEqual({ error: { message: "No job: 0", status: 404 } });
+  });
+});
+
 /*
 
 Delete job posting

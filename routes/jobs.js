@@ -117,9 +117,14 @@ router.patch(
  * Authorization: login and admin
  */
 
-router.delete("/:id", ensureLoggedIn, ensureIsAdmin, async function (req, res, next) {
-  await Job.remove(req.params.id);
-  return res.json({ deleted: req.params.id });
-});
+router.delete(
+  "/:id",
+  ensureLoggedIn,
+  ensureIsAdmin,
+  async function (req, res, next) {
+    await Job.remove(req.params.id);
+    return res.json({ deleted: Number(req.params.id) });
+  }
+);
 
 module.exports = router;
