@@ -217,33 +217,3 @@ describe("remove", function () {
     }
   });
 });
-
-/**
-
-Creating a job instance
-done working
-
-Find all
-done working, no filter
-done working, with filters
-
-jobWhereBuilder
-done working, combo
-done working, with title
-done working, with minSalary
-done working, with hasEquity
-
-get
-done working
-done notfound, invalid id
-
-update
-done working
-done badreq, no data given
-done notfound, invalid id
-
-delete
-- working
-- notfound, invalid id
-
-*/
